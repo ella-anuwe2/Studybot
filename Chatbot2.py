@@ -55,7 +55,7 @@ def process_query(query):
     stemmed_q = []
     for token in tokens_wo_sw:
         stemmed_q.append(sb_stemmer.stem(token))
-    print(stemmed_q)
+    
 
     #lemmentisation (without stemming or tagging)
     # lemm_q = []
@@ -87,51 +87,9 @@ def process_query(query):
             lemm_q.append(lemmentiser.lemmatize(word, postmap[tag]))
         else:
             lemm_q.append(lemmentiser.lemmatize(word))
-        
-
 
     #only return false if no similar paper is found
-    
-    
-
-
-
-def pre_process_corpus(filepath):
-    cursor = connection.cursor()
-    cursor.execute('''CREATE TABLE Corpus)
-    ( documentId text , documentContent text , documentTopic text ) ''')
-
-    cursor.execute()
-    with open(filepath, 'r', encoding='utf-8') as f:
-        content = f.read().upper()
-    
-    tokenizer = nltk.RegexpTokenizer(r"\w+")
-    tok_query = tokenizer.tokenize(query.upper())
-    tok_corpus = tokenizer.tokenize(content)
-
-    #removing stopwords
-    english_stopwords = stopwords.words('english')
-    filtered_query = tok_query.remove(english_stopwords)
-    filtered_corpus = tok_corpus.remove(english_stopwords)
-    
-    # stemming
-    
-    stemmed_query = [stemmer.stem(word) for word in filtered_query]
-    stemmed_corpus = [stemmer.stem(word) for word in filtered_corpus]
-   
-    ## bag of words for query
-
-    # v_q = np.zeros(len(vocabulary))
-    # for stem in stemmed_query:
-    # if(stem in vocabulary):
-    #     index = vocabulary.index(stem)
-    #     vector_query[index] += 1
-    # print(f"Query bag-of-word:\n{vector_query}")
-    # print(sparse.csr_matrix(vector_query))
-    # logfreq_vector_query = logfreq_weighting(vector_query)
-    # print(f"Query bag-of-word (logfreq weighted):\n{logfreq_vector_query}")
-    # print(sparse.csr_matrix(logfreq_vector_query))
-    return -1
+    return falleback_response(query)
 
 
 fallbackResponses = {1: "sorry, could you rephrase that",
@@ -140,14 +98,15 @@ fallbackResponses = {1: "sorry, could you rephrase that",
                     4: "Would you like me to make a web search about ", #followed by query
                     5: "Sorry, but I do not think that I can help you with that. Please feel free to ask me about something else!"
 }
+
 fbr_index = 1
-def default_response(query):
+def falleback_response(query):
     global fbr_index
     fbr_index = 1 if fbr_index > 5 else fbr_index
     
     response = fallbackResponses[fbr_index]
     if(fbr_index == 4):
-        response += "'" + query + "'"
+        response += "'" + query + "', yes/no?"
         print(response)
         answer = input()
         if(answer == 'yes'):
