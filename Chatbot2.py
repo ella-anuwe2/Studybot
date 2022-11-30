@@ -10,8 +10,14 @@ from nltk.util import ngrams , bigrams
 from nltk.lm import MLE
 from nltk.lm.preprocessing import pad_both_ends
 from nltk import SnowballStemmer
-nltk.download('universal_tagset')
+from nltk.stem.porter import PorterStemmer
+from nltk.stem.wordnet import WordNetLemmatizer
 
+
+# nltk.download('universal_tagset')
+# nltk.download('wordnet')
+# nltk.download('averaged_perceptron_tagger')
+# nltk.download('stopwords')
 import scipy
 from scipy import spatial
 
@@ -27,47 +33,69 @@ username = "user"
 subject = ""
 topic = ""
 def generateText(query):
-
-    # if 'name' in query:
-    #     username = findName(query)
-    #     return "hello "+ username
-    # else:
     response = process_query(query)
-    print(response)
+    return response
     
     
 
 def process_query(query):
-    nltk.download('wordnet')
-    nltk.download('averaged_perceptron_tagger')
-    
-    #tokenizing and tagging the query
-   
+    #tokenization
     tokenized_query = word_tokenize(query)
-    tokenized_query = [word.upper() for word in tokenized_query if not word in
-    stopwords.words()]
-    filtered_query = (" ").join(tokenized_query)
 
-    #query is not tokenized, put in uppercase, stopwords removed,
-    #and joined into one filtered query
-    nltk.download('wordnet')
+    #removing stop words
+    #maybe make quotes a search prompt
+    tokens_wo_sw= [word.lower() for word in tokenized_query if not word in stopwords.words()]
+    filtered_query = ("").join(tokens_wo_sw)
+
+
+    #stemming
+    #can change type of stemmer if this isnt working
+    # q_stemmer = PorterStemmer()
+    sb_stemmer = SnowballStemmer('english')
+    stemmed_q = []
+    for token in tokens_wo_sw:
+        stemmed_q.append(sb_stemmer.stem(token))
+    print(stemmed_q)
+
+    #lemmentisation (without stemming or tagging)
+    # lemm_q = []
+    # lemmentiser = WordNetLemmatizer()
+    # for token in tokens_wo_sw:
+    #     lemm_q.append(lemmentiser.lemmatize(token))
+    # print(lemm_q)
+    
+    #stemmed and tagged query
+    tagged_query_stem = nltk.pos_tag(stemmed_q, tagset='universal')
+    # tagged_query_lem = nltk.pos_tag(lemm_q, tagset='universal')
+    
+    postmap = {
+    'ADJ': 'j',
+    'ADV': 'r',
+    'NOUN': 'n',
+    'VERB': 'v'
+    }
+    
+    #lemmentised and tagged query
+    lemm_q = []
     lemmentiser = WordNetLemmatizer()
-    for token in tokenized_query:
-        #lemmentising all of the tokens
-        # tokenized_query[token] = 
-        lemmentiser.lemmatize(token)
+    tagged_query = nltk.pos_tag(lemm_q, tagset='universal')
+    for token in tagged_query: 
+        word = token
+        tag = token[0]
+        tag = token[1]
+        if tag in postmap.keys():
+            lemm_q.append(lemmentiser.lemmatize(word, postmap[tag]))
+        else:
+            lemm_q.append(lemmentiser.lemmatize(word))
+        
 
-
-    tagged_query = nltk.pos_tag(tokenized_query, tagset='universal')
-
-    print(tagged_query)
 
     #only return false if no similar paper is found
-    return False
+    
     
 
 
-filepath = "Datasets\\brain-injury.txt"
+
 def pre_process_corpus(filepath):
     cursor = connection.cursor()
     cursor.execute('''CREATE TABLE Corpus)
@@ -87,7 +115,7 @@ def pre_process_corpus(filepath):
     filtered_corpus = tok_corpus.remove(english_stopwords)
     
     # stemming
-    stemmer = SnowballStemmer('english')
+    
     stemmed_query = [stemmer.stem(word) for word in filtered_query]
     stemmed_corpus = [stemmer.stem(word) for word in filtered_corpus]
    
@@ -103,7 +131,7 @@ def pre_process_corpus(filepath):
     # logfreq_vector_query = logfreq_weighting(vector_query)
     # print(f"Query bag-of-word (logfreq weighted):\n{logfreq_vector_query}")
     # print(sparse.csr_matrix(logfreq_vector_query))
-    # return -1
+    return -1
 
 
 fallbackResponses = {1: "sorry, could you rephrase that",
@@ -144,6 +172,8 @@ USER = 2
 
 welcome_message = 'hello, I am studybot. How can I help you?'
 print(welcome_message)
+words = ["hello", "apple", "banannas", "chocolate"]
+
 query = ""
 done = False
 while(done == False):
@@ -152,7 +182,6 @@ while(done == False):
         user = USER
     elif(user == USER):
         query = input()
-        split = query.split
         if("bye" in query):
             print("I hope I was of good use! Goodbye! :)")
             done = True
