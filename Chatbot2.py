@@ -1,9 +1,13 @@
 import string
 
+
 from urllib import request
+from urllib.request import FancyURLopener
 
 import nltk
 from nltk.corpus import stopwords
+keepwords = ["how", "what", "when", "where", "why"]
+new_words = list(filter(lambda w: w in keepwords, stopwords))
 from nltk import word_tokenize , sent_tokenize
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.util import ngrams , bigrams
@@ -13,6 +17,9 @@ from nltk import SnowballStemmer
 from nltk.stem.porter import PorterStemmer
 from nltk.stem.wordnet import WordNetLemmatizer
 
+import bs4 as bs
+from bs4 import BeautifulSoup as bsoup
+from bs4 import SoupStrainer
 
 # nltk.download('universal_tagset')
 # nltk.download('wordnet')
@@ -36,7 +43,14 @@ def generateText(query):
     response = process_query(query)
     return response
     
-    
+def download_documents(keywords):
+    url = "https://scholar.google.com/"
+    class MyOpener(FancyURLopener):
+        version = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36'
+    openurl = MyOpener().open
+    raw = request.urlopen(url)
+    return -1
+
 
 def process_query(query):
     #tokenization
