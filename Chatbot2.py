@@ -6,8 +6,6 @@ from urllib.request import FancyURLopener
 
 import nltk
 from nltk.corpus import stopwords
-keepwords = ["how", "what", "when", "where", "why"]
-new_words = list(filter(lambda w: w in keepwords, stopwords))
 from nltk import word_tokenize , sent_tokenize
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.util import ngrams , bigrams
@@ -33,26 +31,57 @@ from numpy import dot
 
 import sqlite3
 connection = sqlite3.connect('database.db')
+import warnings
+warnings.filterwarnings('ignore')
 
+import os
 #personal information
 isUnderstood = False
 username = "user"
 subject = ""
 topic = ""
+
+# keepwords = ["how", "what", "when", "where", "why"]
+# new_words = list(filter(lambda w: w in keepwords, stopwords))
+
 def generateText(query):
-    response = process_query(query)
-    return response
+    return -1
     
 def download_documents(keywords):
-    url = "https://scholar.google.com/"
+    url = "https://scholar.google.com/?q="
     class MyOpener(FancyURLopener):
         version = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36'
     openurl = MyOpener().open
     raw = request.urlopen(url)
-    return -1
 
 
-def process_query(query):
+subject = "medicine"
+def process_documents(subject):
+    corpus = {}
+    path = 'Datasets\\' + subject
+
+    string.punctuation = string.punctuation + "'"+"-"+"'"+"-"
+
+    string.punctuation = string.punctuation.replace(".", "")
+
+    for file in os.listdir(path):
+        filepath = path + os.sep + file
+        with open(filepath, encoding='utf-8', errors='ignore', mode='r') as document:
+            content = document.read()
+            document_id = file
+            corpus[document_id] = content
+    
+    
+    file = open("Datasets\\TestReadingQu.txt", encoding = "utf8").read()
+
+    file_nl_removed = ""
+    for line in file:
+        line_nl_removed = line.replace("\n", " ") #removing newline characters
+        file_nl_removed += line_nl_removed
+    file_p = "".join([char for char in file_nl_removed if char not in string.punctuation])
+
+
+def process_text(query):
     #tokenization
     tokenized_query = word_tokenize(query)
 
@@ -69,14 +98,6 @@ def process_query(query):
     stemmed_q = []
     for token in tokens_wo_sw:
         stemmed_q.append(sb_stemmer.stem(token))
-    
-
-    #lemmentisation (without stemming or tagging)
-    # lemm_q = []
-    # lemmentiser = WordNetLemmatizer()
-    # for token in tokens_wo_sw:
-    #     lemm_q.append(lemmentiser.lemmatize(token))
-    # print(lemm_q)
     
     #stemmed and tagged query
     tagged_query_stem = nltk.pos_tag(stemmed_q, tagset='universal')
@@ -102,8 +123,9 @@ def process_query(query):
         else:
             lemm_q.append(lemmentiser.lemmatize(word))
 
-    #only return false if no similar paper is found
-    return falleback_response(query)
+    return stemmed_q
+    # #only return false if no similar paper is found
+    # return falleback_response(query)
 
 
 fallbackResponses = {1: "sorry, could you rephrase that",
