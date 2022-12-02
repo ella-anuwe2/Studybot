@@ -35,6 +35,8 @@ import warnings
 warnings.filterwarnings('ignore')
 
 import os
+
+
 #personal information
 isUnderstood = False
 username = "user"
@@ -44,6 +46,11 @@ topic = ""
 # keepwords = ["how", "what", "when", "where", "why"]
 # new_words = list(filter(lambda w: w in keepwords, stopwords))
 
+
+#to do list:
+# - pre-process text
+# - cosine simimarity to find 
+# - 
 def generateText(query):
     return -1
     
@@ -54,10 +61,19 @@ def download_documents(keywords):
     openurl = MyOpener().open
     raw = request.urlopen(url)
 
+def find_topic(subject):
+    path = 'Datasets\\topic_list\\' + subject
+    for file in os.listdir(path):
+        with open(path, encoding='utf-8', errors='ignore', mode='r') as document:
+            content = document.read()
+            topic = document.name
+        print(topic)
+
 
 subject = "medicine"
 def process_documents(subject):
     corpus = {}
+    #datasets\\has all of the files related to that topic
     path = 'Datasets\\' + subject
 
     string.punctuation = string.punctuation + "'"+"-"+"'"+"-"
@@ -70,7 +86,10 @@ def process_documents(subject):
             content = document.read()
             document_id = file
             corpus[document_id] = content
+            #entire folder of documents held in this corpus
     
+    #now we have a corpus with all of the files for that subject. what do we do next?
+
     
     file = open("Datasets\\TestReadingQu.txt", encoding = "utf8").read()
 
@@ -79,7 +98,8 @@ def process_documents(subject):
         line_nl_removed = line.replace("\n", " ") #removing newline characters
         file_nl_removed += line_nl_removed
     file_p = "".join([char for char in file_nl_removed if char not in string.punctuation])
-
+    tokenised_file = process_text(file_p)
+    return tokenised_file
 
 def process_text(query):
     #tokenization
@@ -115,15 +135,14 @@ def process_text(query):
     lemmentiser = WordNetLemmatizer()
     tagged_query = nltk.pos_tag(lemm_q, tagset='universal')
     for token in tagged_query: 
-        word = token
-        tag = token[0]
+        word = token[0]
         tag = token[1]
         if tag in postmap.keys():
             lemm_q.append(lemmentiser.lemmatize(word, postmap[tag]))
         else:
             lemm_q.append(lemmentiser.lemmatize(word))
 
-    return stemmed_q
+    return lemm_q
     # #only return false if no similar paper is found
     # return falleback_response(query)
 
