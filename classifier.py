@@ -30,9 +30,9 @@ from numpy import dot
 
 import sqlite3
 connection = sqlite3.connect('database.db')
+
 import warnings
 warnings.filterwarnings('ignore')
-
 
 from sklearn . model_selection import train_test_split
 from sklearn . feature_extraction . text import CountVectorizer
@@ -41,73 +41,81 @@ from sklearn . linear_model import LogisticRegression
 
 import os
 
-#change the urls - maybe use wikipedia pages
-# urls = {'Lung cancer': 'http://gutenberg.org/files/1661/1661-0.txt',
-#         'Kidney disiease': 'http://gutenberg.org/files/834/834-0.txt',
-#         'Body parts': 'http://www.gutenberg.org/files/84/84-0.txt'}
-# raw_documents = {}
-# for book in urls:
-#     content = request.urlopen(urls[book]).read().decode('utf8')
-#     raw_documents[book] = content
+import wikipedia
 
-# tokenizer = nltk.RegexpTokenizer(r"\w+")  # only keep words
-# tok_documents = {}
-# for book in raw_documents:
-#     tok_documents[book] = tokenizer.tokenize(raw_documents[book])
+# result = wikipedia.search("Lung cancer")
+# page = wikipedia.page(result[0])
+# title = page.title
+# categories = page.categories
+# # print("categories: "+ categories)
+# content = page.content
+# # print("content: " + content)
+# links = page.links
+# refereces = page.references
+# summary = page.summary
 
-# lowered_tok_documents = {}
-# for book in tok_documents:
-#     lowered_tok_documents[book] = [word.lower() for word in tok_documents[book]]
+def extract_content(page_name):
+    r = wikipedia.search(page_name)
+    return wikipedia.page(r[0]).content
 
-# filtered_documents = {}
-# english_stopwords = stopwords.words('english')
-# for book in lowered_tok_documents:
-#     filtered_documents[book] = [word for word in lowered_tok_documents[book]
-#                                 if word not in english_stopwords]
-   
-# from nltk.stem.snowball import SnowballStemmer
+wikipages = {
+    'Lung cancer': extract_content('Lung cancer'),
+    'Kidney disease': extract_content('Kidney disease'),
+    'The heart': extract_content('The heart'),
+}
 
-# sb_stemmer = SnowballStemmer('english')
-# stemmed_documents = {}
-# for book in filtered_documents:
-#     stemmed_documents[book] = [sb_stemmer.stem(word)
-#                                for word in filtered_documents[book]]
-    # print(f'{book}: {stemmed_documents[book][500:510]}')
+## tokenisation
+tokenizer = nltk.RegexpTokenizer(r"\w+")  # only keep words
+tok_documents = {}
+for page in wikipages:
+    tok_documents[page] = tokenizer.tokenize(wikipages[page])
+
+#lowercase
+lowered_doc = {}
+for page in tok_documents:
+    lowered_doc[page] = [word.lower() for word in tok_documents[page]]
+
+#removing stopwords
+filtered_pages = {}
+english_stopwords = stopwords.words('english')
+for page in lowered_doc:
+    filtered_pages[page] = [word for word in lowered_doc[page] if word not in english_stopwords]
+
+#change to lemmentisation if time
+sb_stemmer = SnowballStemmer('english')
+stemmed_documents = {}
+for book in filtered_pages:
+    stemmed_documents[book] = [sb_stemmer.stem(word) for word in filtered_pages[book]]
 
 vocabulary = []
 for book in stemmed_documents:
     for stem in stemmed_documents[book]:
         if stem not in vocabulary:
             vocabulary.append(stem)
-# print(f'VOCABULARY: {vocabulary[500:510]}, total length: {len(vocabulary)}')
 
 import numpy as np
-
 bow = {}
 for book in stemmed_documents:
     bow[book] = np.zeros(len(vocabulary))
     for stem in stemmed_documents[book]:
         index = vocabulary.index(stem)
         bow[book][index] += 1
-    print(f'{book} bag-of-word: {bow[book][500:510]}')
+    # print(f'{book} bag-of-word: {bow[book]}')
 
+#matrix
 matrix = np.vstack([bow[key] for key in bow])
-print(f"Document-term matrix {matrix.shape}:\n{matrix}")
-print(f"Term-document matrix {matrix.transpose().shape}:\n{matrix.transpose()}")
-
+# print(f"Document-term matrix {matrix.shape}:\n{matrix}")
+# print(f"Term-document matrix {matrix.transpose().shape}:\n{matrix.transpose()}")
 
 from scipy import sparse
 from sys import getsizeof
-
 sparse_matrix = sparse.csr_matrix(matrix)
-print(f"Size of array: {getsizeof(matrix)} B")
-print(f"Size of sparse matrix: {getsizeof(sparse_matrix)} B")
+# print(f"Size of array: {getsizeof(matrix)} B")
+# print(f"Size of sparse matrix: {getsizeof(sparse_matrix)} B")
 
-print(matrix)
-np.save('./td_matrix.npy', matrix)
+np.save('./td_matrix.npy', matrix)  #saving matrix using pickle
 
-loaded_matrix = np.load('./td_matrix.npy')
-print(loaded_matrix)
+loaded_matrix = np.load('./td_matrix.npy') #loading matrix
 
 def binary_weighting(vector):
     b_vector = np.array(vector, dtype=bool)  # convert into bool (True/False)
@@ -117,7 +125,8 @@ def binary_weighting(vector):
 binary_bow = {}
 for book in bow:
     binary_bow[book] = binary_weighting(bow[book])
-    print(f'{book} bag-of-word (binary weighted): {binary_bow[book]}')
+    # print(f'{book} bag-of-word (binary weighted): {binary_bow[book]}')
+
 
 from math import log10
 
@@ -130,7 +139,8 @@ def logfreq_weighting(vector):
 logfreq_bow = {}
 for book in bow:
     logfreq_bow[book] = logfreq_weighting(bow[book])
-    print(f'{book} bag-of-word (logfreq weighted): {logfreq_bow[book]}')
+    # print(f'{book} bag-of-word (logfreq weighted): {logfreq_bow[book]}')
+
 
 def tfidf_weighting(vector_1, vector_2):
     N = 2
@@ -159,114 +169,52 @@ import itertools
 
 for pair in itertools.combinations(bow.keys(), 2):
     similarity = sim_cosine(bow[pair[0]], bow[pair[1]])
-    print(f'{pair}: {similarity}')
+    # print(f'{pair}: {similarity}')
 
-query = input("Enter your query: ")
+logfreq_vector_query = 0
+def processQuery(query):
 
-tokenizer = nltk.RegexpTokenizer(r"\w+")
-tok_query = tokenizer.tokenize(query)
+    tokenizer = nltk.RegexpTokenizer(r"\w+")
+    tok_query = tokenizer.tokenize(query)
 
-lowered_tok_query = [word.lower() for word in tok_query]
+    # Lower casing
+    lowered_tok_query = [word.lower() for word in tok_query]
 
-english_stopwords = stopwords.words('english')
-filtered_query = [word for word in lowered_tok_query
-                  if word not in english_stopwords]
+    # Remove stopwords and lower casing
+    english_stopwords = stopwords.words('english')
+    filtered_query = [word for word in lowered_tok_query
+                    if word not in english_stopwords]
 
-             
-lemmentiser = WordNetLemmatizer()
-def lemmed_words (text):
-    tokenized_query = word_tokenize(text)
-    tokens_wo_sw= [word.lower() for word in tokenized_query if not word in stopwords.words()]
-    # print(tokens_wo_sw)
-    
-    postmap = {
-    'ADJ': 'j',
-    'ADV': 'r',
-    'NOUN': 'n',
-    'VERB': 'v'
-    }
-    
-    #lemmentised and tagged query
-    lemm_q = []
-    lemmentiser = WordNetLemmatizer()
-    tagged_query = nltk.pos_tag(tokens_wo_sw, tagset='universal')
-    for token in tagged_query: 
-        word = token[0]
-        tag = token[1]
-        if tag in postmap.keys():
-            lemm_q.append(lemmentiser.lemmatize(word, postmap[tag]))
-        else:
-            lemm_q.append(lemmentiser.lemmatize(word))
-    return lemm_q
+    # Stemming
+    sb_stemmer = SnowballStemmer('english')
+    stemmed_query = [sb_stemmer.stem(word) for word in filtered_query]
 
-words = []
-for word in filtered_query:
-    words.append(lemmed_words(word))
-lemmed_query = words
+    vector_query = np.zeros(len(vocabulary))
+    for stem in stemmed_query:
+        if stem in vocabulary:
+            index = vocabulary.index(stem)
+            vector_query[index] += 1
+    # print(f"Query bag-of-word:\n{vector_query}")
+    # print(sparse.csr_matrix(vector_query))
+    global logfreq_vector_query
+    logfreq_vector_query = logfreq_weighting(vector_query)
+    # print(f"Query bag-of-word (logfreq weighted):\n{logfreq_vector_query}")
+    # print(sparse.csr_matrix(logfreq_vector_query))
 
-vector_query = np.zeros(len(vocabulary))
-for stem in lemmed_query:
-    if stem in vocabulary:
-        index = vocabulary.index(stem)
-        vector_query[index] += 1
-logfreq_vector_query = logfreq_weighting(vector_query)
+def most_similar(query):
+    processQuery(query=query)
+    similarities = {}
+    for book in bow.keys():
+        similarity = sim_cosine(logfreq_bow[book], logfreq_vector_query)
+        if(similarity > 0):
+            similarities[book] = similarity
+        # print(f'Similarity with {book}: {similarity}')
+    return similarities
 
+def addPages(topic):
+    wikipages[topic] = extract_content(topic)
 
-for subject in bow.keys():
-    similarity = sim_cosine(logfreq_bow[book], logfreq_vector_query)
-    # print(f'Similarity with {book}: {similarity}')
-
-from sklearn.model_selection import train_test_split
-
-label_dir = {
-"history": "Datasets/training/history",
-"medicine": "Datasets/training/medicine",
-"greetings": "Datasets/training/greetings"
-}
-
-data = []
-labels = []
-
-for label in label_dir.keys() :
-    for file in os.listdir ( label_dir [ label ]) :
-        filepath = label_dir[ label ] + os.sep + file
-        with open(filepath, encoding ='utf8', errors ='ignore', mode ='r') as review:
-            content = review.read ()
-            data.append ( content )
-            labels.append ( label )
-
-X_train , X_test , y_train , y_test = train_test_split ( data , labels , stratify = labels, test_size =0.25 , random_state =1)
-
-lemmentiser = WordNetLemmatizer()
-analyser = CountVectorizer().build_analyzer()
-
-
-
-count_vect = CountVectorizer (stop_words = stopwords . words ('english'))
-X_train_counts = count_vect . fit_transform ( X_train )
-
-tfidf_transformer = TfidfTransformer ( use_idf = True , sublinear_tf = True ). fit (
-X_train_counts )
-X_train_tf = tfidf_transformer . transform ( X_train_counts )
-
-clf = LogisticRegression ( random_state =0) . fit ( X_train_tf , y_train )
-
-from sklearn.metrics import accuracy_score , f1_score , confusion_matrix
-
-X_new_counts = count_vect.transform(X_test)
-X_new_tfidf = tfidf_transformer.transform(X_new_counts)
-
-predicted = clf.predict(X_new_tfidf)
-
-X_train_lf = np.apply_along_axis(logfreq_weighting, 0, X_train_counts.toarray())
-X_train_lf = sparse.csr_matrix(X_train_lf)
-# print(X_train_lf)
-
-from sklearn.svm import SVC
-
-new_clf = SVC(C=1.0, random_state=0).fit(X_train_lf, y_train)
-
-X_new_lf = np.apply_along_axis(logfreq_weighting, 0, X_new_counts.toarray())
-X_new_lf = sparse.csr_matrix(X_new_lf)
-
-
+def get_summary(topic):
+    result = wikipedia.search("Lung cancer")
+    page = wikipedia.page(result[0])
+    return page.summary

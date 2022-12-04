@@ -38,5 +38,5 @@ warnings.filterwarnings('ignore')
 
 import os
 
-import classifier.py
+import classifier.ipynb
 

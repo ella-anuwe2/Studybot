@@ -32,6 +32,8 @@ from numpy import dot
 import sqlite3
 connection = sqlite3.connect('database.db')
 import warnings
+
+import classifier
 warnings.filterwarnings('ignore')
 
 import os
@@ -147,6 +149,8 @@ def process_text(query):
     # return falleback_response(query)
 
 
+    
+
 fallbackResponses = {1: "sorry, could you rephrase that",
                     2: "Could you please be more clear about what you're asking. Try and include some key words",
                     3: "Could you please be more specific",
@@ -155,7 +159,7 @@ fallbackResponses = {1: "sorry, could you rephrase that",
 }
 
 fbr_index = 1
-def falleback_response(query):
+def fallback_response(query):
     global fbr_index
     fbr_index = 1 if fbr_index > 5 else fbr_index
     
@@ -173,6 +177,33 @@ def falleback_response(query):
     fbr_index += 1
     return response
 
+def respond(query):
+    #match intent, and if intent is a search question (not small talk or any other intent) then conduct search
+    results = classifier.most_similar(query)
+    answer_list = []
+    similarity_list = []
+    for key in results:
+        answer_list.append(key)
+        similarity_list.append(results[key])
+    [x for _, x in sorted(zip(similarity_list, answer_list))]
+    
+    resp = False
+    for response in range(len(answer_list)):
+        ans = input("Are you asking about "+ answer_list[response] + "? (y/n)")
+        if ans == ("y" or "yes"):
+            #add 'would you like to see more?'
+            print(classifier.get_summary(answer_list[response]))
+            resp = True #has responded, and therefore we do not need a fallback response after exiting the loop
+            print()
+            cont = input("I hope this was helpful! Is there anything else that you'd like to ask?")
+            if cont == "no" or "n":
+                print("So glad that I could help! Bye!")
+                done = True
+                break
+        
+    if resp == False:
+        fallback_response(query)
+
 def searchWeb(query):
     return -1
 
@@ -186,13 +217,12 @@ USER = 2
 
 welcome_message = 'hello, I am studybot. How can I help you?'
 print(welcome_message)
-words = ["hello", "apple", "banannas", "chocolate"]
 
 query = ""
 done = False
 while(done == False):
     if(user == BOT):
-        print(generateText(query))
+        respond(query)
         user = USER
     elif(user == USER):
         query = input()
