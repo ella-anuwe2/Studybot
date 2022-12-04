@@ -61,7 +61,7 @@ def extract_content(page_name):
     if len(r) > 0:
         return wikipedia.page(r[0]).content
     else:
-        print("error - no search results")
+        print("error - none of the books on my shelf have any info on that!")
 
 wikipages = {
     'Lung cancer': extract_content('Lung cancer'),
@@ -226,7 +226,7 @@ def most_similar(query):
         similarity = sim_cosine(logfreq_bow[book], logfreq_vector_query)
         if(similarity > 0):
             similarities[book] = similarity
-        print(f'Similarity with {book}: {similarity}')
+        # print(f'Similarity with {book}: {similarity}')
     return similarities
 
 def get_summary(topic):

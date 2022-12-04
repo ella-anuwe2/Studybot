@@ -184,7 +184,7 @@ fbr_index = 1
 #handle fallback responses in here
 def fallback_response(query):
     global fbr_index
-    fbr_index = 1 if fbr_index > len(fallback_response) else fbr_index
+    fbr_index = 1 if fbr_index > len(fallbackResponses) else fbr_index
     
     response = fallbackResponses[fbr_index]
     if(fbr_index == 2):
@@ -260,8 +260,16 @@ def findName(query):
     # tagged_query_lem = nltk.pos_tag(lemm_q, tagset='universal')
     
     for token in tagged_query:
+        print(token)
         if token[1] == 'NOUN':
             return token[0]
+
+def intent_matcher(query):
+    for word in query:
+        if word.lower() == "name":
+            return "NAME"
+    else: 
+        return "UNKNOWN"
 
 #this is the main while loop which eveything else comes from. the program will stop when the user says bye
 user = 2 #user 2 is the user, and 1 is the bot
@@ -283,6 +291,10 @@ while(done == False):
         if("bye" in query):
             print("I hope I was of good use! Goodbye! :)")
             done = True
+        #change this to a long list of different intents 
+        if(intent_matcher(query) == "Name"):
+            name = findName(query)
+            print("Hello " + name + "!")
         user = BOT
     else:
         print('error')
