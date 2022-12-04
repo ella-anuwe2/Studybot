@@ -177,6 +177,13 @@ def fallback_response(query):
     fbr_index += 1
     return response
 
+def no_inp(s):
+    s.lower()
+    if s == "no" or s == "n":
+        return True
+    else:
+        return False
+
 def respond(query):
     #match intent, and if intent is a search question (not small talk or any other intent) then conduct search
     results = classifier.most_similar(query)
@@ -189,20 +196,31 @@ def respond(query):
     
     resp = False
     for response in range(len(answer_list)):
-        ans = input("Are you asking about "+ answer_list[response] + "? (y/n)")
-        if ans == ("y" or "yes"):
-            #add 'would you like to see more?'
-            print(classifier.get_summary(answer_list[response]))
+        ans = input("Are you asking about "+ answer_list[response] + "? (y/n)\n")
+        if no_inp(ans) == False:
+            chop_response(answer_list[response])
+                
             resp = True #has responded, and therefore we do not need a fallback response after exiting the loop
             print()
-            cont = input("I hope this was helpful! Is there anything else that you'd like to ask?")
-            if cont == "no" or "n":
+            cont = input("I hope this was helpful! Is there anything else that you'd like to ask?\n")
+            if no_inp(cont):
                 print("So glad that I could help! Bye!")
-                done = True
-                break
+                quit()
         
     if resp == False:
         fallback_response(query)
+
+def chop_response(topic):
+    st = classifier.get_summary(topic)
+    resp_list = st.split("\n")
+
+    for i in range(len(resp_list)):
+        print(resp_list[i])
+        print()
+        if i < len(resp_list):
+            inp = input("Should I continue giving you information about "+ topic + "?\n").lower()
+            if no_inp(inp):
+                return -1
 
 def searchWeb(query):
     return -1
