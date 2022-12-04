@@ -53,10 +53,15 @@ import wikipedia
 # links = page.links
 # refereces = page.references
 # summary = page.summary
+bow = {}
+import numpy as np
 
 def extract_content(page_name):
     r = wikipedia.search(page_name)
-    return wikipedia.page(r[0]).content
+    if len(r) > 0:
+        return wikipedia.page(r[0]).content
+    else:
+        print("error - no search results")
 
 wikipages = {
     'Lung cancer': extract_content('Lung cancer'),
@@ -64,68 +69,78 @@ wikipages = {
     'The heart': extract_content('The heart'),
 }
 
+def calculate(): ##need to recalculate information
+    process_documents()
+    calc_matrix()
+    b_bow()
+    calc_bow()
+
+
 ## tokenisation
-tokenizer = nltk.RegexpTokenizer(r"\w+")  # only keep words
-tok_documents = {}
-for page in wikipages:
-    tok_documents[page] = tokenizer.tokenize(wikipages[page])
+def process_documents():
+    tokenizer = nltk.RegexpTokenizer(r"\w+")  # only keep words
+    tok_documents = {}
+    for page in wikipages:
+        tok_documents[page] = tokenizer.tokenize(wikipages[page])
 
-#lowercase
-lowered_doc = {}
-for page in tok_documents:
-    lowered_doc[page] = [word.lower() for word in tok_documents[page]]
+    #lowercase
+    lowered_doc = {}
+    for page in tok_documents:
+        lowered_doc[page] = [word.lower() for word in tok_documents[page]]
 
-#removing stopwords
-filtered_pages = {}
-english_stopwords = stopwords.words('english')
-for page in lowered_doc:
-    filtered_pages[page] = [word for word in lowered_doc[page] if word not in english_stopwords]
+    #removing stopwords
+    filtered_pages = {}
+    english_stopwords = stopwords.words('english')
+    for page in lowered_doc:
+        filtered_pages[page] = [word for word in lowered_doc[page] if word not in english_stopwords]
 
-#change to lemmentisation if time
-sb_stemmer = SnowballStemmer('english')
-stemmed_documents = {}
-for book in filtered_pages:
-    stemmed_documents[book] = [sb_stemmer.stem(word) for word in filtered_pages[book]]
+    #change to lemmentisation if time
+    sb_stemmer = SnowballStemmer('english')
+    stemmed_documents = {}
+    for book in filtered_pages:
+        stemmed_documents[book] = [sb_stemmer.stem(word) for word in filtered_pages[book]]
 
-vocabulary = []
-for book in stemmed_documents:
-    for stem in stemmed_documents[book]:
-        if stem not in vocabulary:
-            vocabulary.append(stem)
+    global vocabulary
+    vocabulary = []
+    for book in stemmed_documents:
+        for stem in stemmed_documents[book]:
+            if stem not in vocabulary:
+                vocabulary.append(stem)
 
-import numpy as np
-bow = {}
-for book in stemmed_documents:
-    bow[book] = np.zeros(len(vocabulary))
-    for stem in stemmed_documents[book]:
-        index = vocabulary.index(stem)
-        bow[book][index] += 1
-    # print(f'{book} bag-of-word: {bow[book]}')
+    global bow
+    bow = {}
+    for book in stemmed_documents:
+        bow[book] = np.zeros(len(vocabulary))
+        for stem in stemmed_documents[book]:
+            index = vocabulary.index(stem)
+            bow[book][index] += 1
+        # print(f'{book} bag-of-word: {bow[book]}')
 
-#matrix
-matrix = np.vstack([bow[key] for key in bow])
-# print(f"Document-term matrix {matrix.shape}:\n{matrix}")
-# print(f"Term-document matrix {matrix.transpose().shape}:\n{matrix.transpose()}")
+def calc_matrix():
+    matrix = np.vstack([bow[key] for key in bow])
+    # print(f"Document-term matrix {matrix.shape}:\n{matrix}")
+    # print(f"Term-document matrix {matrix.transpose().shape}:\n{matrix.transpose()}")
 
-from scipy import sparse
-from sys import getsizeof
-sparse_matrix = sparse.csr_matrix(matrix)
-# print(f"Size of array: {getsizeof(matrix)} B")
-# print(f"Size of sparse matrix: {getsizeof(sparse_matrix)} B")
+    from scipy import sparse
+    from sys import getsizeof
+    sparse_matrix = sparse.csr_matrix(matrix)
+    # print(f"Size of array: {getsizeof(matrix)} B")
+    # print(f"Size of sparse matrix: {getsizeof(sparse_matrix)} B")
 
-np.save('./td_matrix.npy', matrix)  #saving matrix using pickle
+    np.save('./td_matrix.npy', matrix)  #saving matrix using pickle
 
-loaded_matrix = np.load('./td_matrix.npy') #loading matrix
+    loaded_matrix = np.load('./td_matrix.npy') #loading matrix
 
 def binary_weighting(vector):
     b_vector = np.array(vector, dtype=bool)  # convert into bool (True/False)
     b_vector = np.array(b_vector, dtype=int)  # convert bool into int (True/False become 1/0)
     return b_vector
 
-binary_bow = {}
-for book in bow:
-    binary_bow[book] = binary_weighting(bow[book])
-    # print(f'{book} bag-of-word (binary weighted): {binary_bow[book]}')
+def b_bow():
+    binary_bow = {}
+    for book in bow:
+        binary_bow[book] = binary_weighting(bow[book])
+        # print(f'{book} bag-of-word (binary weighted): {binary_bow[book]}')
 
 
 from math import log10
@@ -136,10 +151,13 @@ def logfreq_weighting(vector):
         lf_vector.append(log10(1+frequency))
     return np.array(lf_vector)
 
-logfreq_bow = {}
-for book in bow:
-    logfreq_bow[book] = logfreq_weighting(bow[book])
-    # print(f'{book} bag-of-word (logfreq weighted): {logfreq_bow[book]}')
+
+def calc_bow():
+    global logfreq_bow
+    logfreq_bow = {}
+    for book in bow:
+        logfreq_bow[book] = logfreq_weighting(bow[book])
+        # print(f'{book} bag-of-word (logfreq weighted): {logfreq_bow[book]}')
 
 
 def tfidf_weighting(vector_1, vector_2):
@@ -208,13 +226,12 @@ def most_similar(query):
         similarity = sim_cosine(logfreq_bow[book], logfreq_vector_query)
         if(similarity > 0):
             similarities[book] = similarity
-        # print(f'Similarity with {book}: {similarity}')
+        print(f'Similarity with {book}: {similarity}')
     return similarities
 
-def addPages(topic):
-    wikipages[topic] = extract_content(topic)
-
 def get_summary(topic):
-    result = wikipedia.search("Lung cancer")
+    result = wikipedia.search(topic)
     page = wikipedia.page(result[0])
     return page.summary
+
+calculate()

@@ -40,7 +40,6 @@ import os
 
 
 #personal information
-isUnderstood = False
 username = "user"
 subject = ""
 topic = ""
@@ -70,6 +69,24 @@ def find_topic(subject):
             content = document.read()
             topic = document.name
         print(topic)
+
+def find_keywords(query):
+    #tokenization
+    tokenized_query = word_tokenize(query)
+
+    #removing stop words
+    #maybe make quotes a search prompt
+    tokens_wo_sw= [word.lower() for word in tokenized_query if not word in stopwords.words()]
+    # filtered_query = ("").join(tokens_wo_sw)
+
+    tagged_query = nltk.pos_tag(tokens_wo_sw, tagset='universal')
+
+    keywords = ""
+    for token in tagged_query:
+         if token[1] == "NOUN" or token[1] == "VERB":
+            keywords += token[0] + " "
+    
+    return keywords
 
 
 subject = "medicine"
@@ -148,32 +165,37 @@ def process_text(query):
     # #only return false if no similar paper is found
     # return falleback_response(query)
 
-
+def add_to_dataset(keywords):
+    content = classifier.extract_content(keywords)
+    classifier.wikipages[keywords] = content
+    classifier.calculate()
     
 
-fallbackResponses = {1: "sorry, could you rephrase that",
-                    2: "Could you please be more clear about what you're asking. Try and include some key words",
-                    3: "Could you please be more specific",
-                    4: "Would you like me to make a web search about ", #followed by query
-                    5: "Sorry, but I do not think that I can help you with that. Please feel free to ask me about something else!"
+fallbackResponses = {
+        1: "Could you please be more clear about what you're asking. Try and include some key words.",
+        2: "Sorry, but I do not know much about ",#followed by query
+        3: "Could you please be more specific?", 
+        4: "Sorry, but I'm having trouble understanding your question."
 }
 
+
 fbr_index = 1
+
+#handle fallback responses in here
 def fallback_response(query):
     global fbr_index
-    fbr_index = 1 if fbr_index > 5 else fbr_index
+    fbr_index = 1 if fbr_index > len(fallback_response) else fbr_index
     
     response = fallbackResponses[fbr_index]
-    if(fbr_index == 4):
-        response += "'" + query + "', yes/no?"
+    if(fbr_index == 2):
+        response += "'" + query + "', but let me read about it!"
         print(response)
-        answer = input()
-        if(answer == 'yes'):
-            searchWeb(query)
-            response = "I hope that was helpful. Is there anything else that you'd like to ask?"
-        else:
-            response = "Sorry, but I'm not sure if I can help you with that query"
-        
+        add_to_dataset(find_keywords(query)) ##returns string of information about the topic and adds page to database
+        chop_response(find_keywords(query)) ##takes in entire string
+        print("This is the best information that I could find from my research")
+        print("I hope that this was helpful!")
+        response = ""
+    
     fbr_index += 1
     return response
 
@@ -187,17 +209,23 @@ def no_inp(s):
 def respond(query):
     #match intent, and if intent is a search question (not small talk or any other intent) then conduct search
     results = classifier.most_similar(query)
-    answer_list = []
-    similarity_list = []
+    answer_list = [] #l1
+    similarity_list = [] #l2
     for key in results:
         answer_list.append(key)
-        similarity_list.append(results[key])
-    [x for _, x in sorted(zip(similarity_list, answer_list))]
+        similarity_list.append(results[key]) 
     
+    zipped_pairs = zip(similarity_list, answer_list)
+    answer_list = [x for _, x in sorted(zipped_pairs, reverse=True)]
+    sorted(similarity_list, reverse=True)
+
+    print("sorted !!")
+    print(answer_list)
+
     resp = False
     for response in range(len(answer_list)):
         ans = input("Are you asking about "+ answer_list[response] + "? (y/n)\n")
-        if no_inp(ans) == False:
+        if no_inp(ans) == False: #if they say yes
             chop_response(answer_list[response])
                 
             resp = True #has responded, and therefore we do not need a fallback response after exiting the loop
@@ -206,9 +234,10 @@ def respond(query):
             if no_inp(cont):
                 print("So glad that I could help! Bye!")
                 quit()
-        
-    if resp == False:
-        fallback_response(query)
+            else:
+                return
+    if(resp == False):
+        print(fallback_response(query))
 
 def chop_response(topic):
     st = classifier.get_summary(topic)
@@ -217,7 +246,7 @@ def chop_response(topic):
     for i in range(len(resp_list)):
         print(resp_list[i])
         print()
-        if i < len(resp_list):
+        if i < len(resp_list)-1:
             inp = input("Should I continue giving you information about "+ topic + "?\n").lower()
             if no_inp(inp):
                 return -1
@@ -225,8 +254,14 @@ def chop_response(topic):
 def searchWeb(query):
     return -1
 
-def findName(name):
-    return "unknown" #fix this to find the name within the query
+def findName(query):
+    tokenized_query = word_tokenize(query)
+    tagged_query= nltk.pos_tag(tokenized_query, tagset='universal')
+    # tagged_query_lem = nltk.pos_tag(lemm_q, tagset='universal')
+    
+    for token in tagged_query:
+        if token[1] == 'NOUN':
+            return token[0]
 
 #this is the main while loop which eveything else comes from. the program will stop when the user says bye
 user = 2 #user 2 is the user, and 1 is the bot
@@ -243,7 +278,8 @@ while(done == False):
         respond(query)
         user = USER
     elif(user == USER):
-        query = input()
+        query = input("What would you like to know?\n")
+        #determine intent
         if("bye" in query):
             print("I hope I was of good use! Goodbye! :)")
             done = True
