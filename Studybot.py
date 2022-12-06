@@ -1,6 +1,5 @@
 import string
 
-
 from urllib import request
 from urllib.request import FancyURLopener
 
@@ -38,6 +37,9 @@ warnings.filterwarnings('ignore')
 
 import os
 
+import intent_matcher as im
+
+import python_weather
 
 #personal information
 username = "user"
@@ -255,6 +257,7 @@ def searchWeb(query):
     return -1
 
 def findName(query):
+    print("Checking!!!!!")
     tokenized_query = word_tokenize(query)
     tagged_query= nltk.pos_tag(tokenized_query, tagset='universal')
     # tagged_query_lem = nltk.pos_tag(lemm_q, tagset='universal')
@@ -267,9 +270,15 @@ def findName(query):
 def intent_matcher(query):
     for word in query:
         if word.lower() == "name":
-            return "NAME"
+            return "Name"
     else: 
         return "UNKNOWN"
+
+async def weather_response(query):
+    base_url = "http://api.openweathermap.org/data/2.5/weather?"
+    city_name = "Nottingham"
+
+    complete_url = 
 
 #this is the main while loop which eveything else comes from. the program will stop when the user says bye
 user = 2 #user 2 is the user, and 1 is the bot
@@ -283,18 +292,23 @@ query = ""
 done = False
 while(done == False):
     if(user == BOT):
-        respond(query)
+        intent = im.find_intent("hello!")
+        if intent == "greetings":
+            greetings_response(query)
+        elif intent == "medicine":
+            medical_response(query)
+        elif intent == "source":
+            find_source(query)
+        elif intent == "weather":
+            weather_response(query)
+        elif intent == "exit":
+            print("I hope that I was of good use! Bye! :)")
+            done == True
+        # respond(query)
         user = USER
     elif(user == USER):
         query = input("What would you like to know?\n")
         #determine intent
-        if("bye" in query):
-            print("I hope I was of good use! Goodbye! :)")
-            done = True
-        #change this to a long list of different intents 
-        if(intent_matcher(query) == "Name"):
-            name = findName(query)
-            print("Hello " + name + "!")
         user = BOT
     else:
-        print('error')
+        print('Whoops! I think I am broken :(')

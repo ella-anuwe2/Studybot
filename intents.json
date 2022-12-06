@@ -1,0 +1,27 @@
+{"intents": [{"tag": "greetings", 
+            "patterns": ["hi", "hey", "hi!", "wagwarn", "hello", "bonjour", "chao", "whats up"],
+            "responses": ["Hi! My name is Studybot and I am happy to help"]
+            },
+        
+            {"tag": "medicine", 
+            "patterns": ["lungs", "heart", "bones", "health", "body", "skeletal"],
+            "responses": ["Hi! My name is Studybot and I am happy to help"]
+            },
+
+            {"tag": "source", 
+            "patterns": ["could your find me a source for health", "could you find me a source for that please", "i need a source for this topic", "please find me a articles on medical care", "send me links on medical care", "i need some sources "],
+            "responses": ["Hi! My name is Studybot and I am happy to help"]
+            },
+
+            {"tag": "weather", 
+            "patterns": ["hi! what is the weather like today?", "What is the weather like today", "great weather we're having today", "will it rain?", "do i need to weat a jacket?", "will i need an umbrella?", "it is really wet outside", "it is terrible outside", "the weather outside is terrible"],
+            "responses": ["The weather seems lovely today. It is ", "It is my favourite temperature right now! "]
+            },
+
+            {"tag": "exit", 
+            "patterns": ["bye", "goodbye", "i'm done now", "bye now!", "i have to go", "cheerio", "au revoir", "bye-bye", "so long"],
+            "responses": ["I hope I was of good use! Goodbye! :)"]
+            }
+            
+            ]
+}
