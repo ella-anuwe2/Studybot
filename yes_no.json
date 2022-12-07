@@ -1,0 +1,8 @@
+{ "intents":[{"tag": "yes", 
+"patterns": ["yes", "y", "yeah", "alright", "absolutely", "sure", "certainly", "yep", "okay", "ok",
+            "yah", "yup"]
+},
+
+{"tag": "no", 
+"patterns": ["no", "not at all", "no indeed", "never", "not really", "n", "absolutely not", "no way"]
+}] }

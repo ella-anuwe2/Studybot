@@ -90,38 +90,6 @@ def find_keywords(query):
     
     return keywords
 
-
-subject = "medicine"
-def process_documents(subject):
-    corpus = {}
-    #datasets\\has all of the files related to that topic
-    path = 'Datasets\\' + subject
-
-    string.punctuation = string.punctuation + "'"+"-"+"'"+"-"
-
-    string.punctuation = string.punctuation.replace(".", "")
-
-    for file in os.listdir(path):
-        filepath = path + os.sep + file
-        with open(filepath, encoding='utf-8', errors='ignore', mode='r') as document:
-            content = document.read()
-            document_id = file
-            corpus[document_id] = content
-            #entire folder of documents held in this corpus
-    
-    #now we have a corpus with all of the files for that subject. what do we do next?
-
-    
-    file = open("Datasets\\TestReadingQu.txt", encoding = "utf8").read()
-
-    file_nl_removed = ""
-    for line in file:
-        line_nl_removed = line.replace("\n", " ") #removing newline characters
-        file_nl_removed += line_nl_removed
-    file_p = "".join([char for char in file_nl_removed if char not in string.punctuation])
-    tokenised_file = process_text(file_p)
-    return tokenised_file
-
 def process_text(query):
     #tokenization
     tokenized_query = word_tokenize(query)
@@ -180,7 +148,6 @@ fallbackResponses = {
         4: "Sorry, but I'm having trouble understanding your question."
 }
 
-
 fbr_index = 1
 
 #handle fallback responses in here
@@ -201,14 +168,7 @@ def fallback_response(query):
     fbr_index += 1
     return response
 
-def no_inp(s):
-    s.lower()
-    if s == "no" or s == "n":
-        return True
-    else:
-        return False
-
-def respond(query):
+def medical_response(query):
     #match intent, and if intent is a search question (not small talk or any other intent) then conduct search
     results = classifier.most_similar(query)
     answer_list = [] #l1
@@ -221,23 +181,20 @@ def respond(query):
     answer_list = [x for _, x in sorted(zipped_pairs, reverse=True)]
     sorted(similarity_list, reverse=True)
 
-    print("sorted !!")
-    print(answer_list)
-
     resp = False
     for response in range(len(answer_list)):
         ans = input("Are you asking about "+ answer_list[response] + "? (y/n)\n")
-        if no_inp(ans) == False: #if they say yes
+        if im.find_yn(ans) == "yes": #if they say yes
+            print(answer_list[response])
             chop_response(answer_list[response])
-                
             resp = True #has responded, and therefore we do not need a fallback response after exiting the loop
             print()
             cont = input("I hope this was helpful! Is there anything else that you'd like to ask?\n")
-            if no_inp(cont):
+            if im.find_yn(ans) == "no":
                 print("So glad that I could help! Bye!")
                 quit()
             else:
-                return
+                print("no")
     if(resp == False):
         print(fallback_response(query))
 
@@ -250,14 +207,13 @@ def chop_response(topic):
         print()
         if i < len(resp_list)-1:
             inp = input("Should I continue giving you information about "+ topic + "?\n").lower()
-            if no_inp(inp):
+            if im.find_yn(inp):
                 return -1
 
 def searchWeb(query):
     return -1
 
 def findName(query):
-    print("Checking!!!!!")
     tokenized_query = word_tokenize(query)
     tagged_query= nltk.pos_tag(tokenized_query, tagset='universal')
     # tagged_query_lem = nltk.pos_tag(lemm_q, tagset='universal')
@@ -267,21 +223,39 @@ def findName(query):
         if token[1] == 'NOUN':
             return token[0]
 
-def intent_matcher(query):
+def find_source(query):
     for word in query:
         if word.lower() == "name":
             return "Name"
     else: 
         return "UNKNOWN"
 
+greetings = {
+        1: "Hi! I hope you are doing well! What are you studying?",
+        2: "Hello, I am studybot ",#followed by query
+        3: "Beep bop. Hello. I am Studybot and I am ready to help", 
+        4: "Hello " + username + " what would you like to research"
+}
+
+gr_index = 1
+def greetings_response(query):
+    global gr_index
+    gr_index = 1 if gr_index > len(greetings) else gr_index
+    
+    response = greetings[gr_index]
+
+    gr_index +=1
+    return response
+
+
 async def weather_response(query):
     base_url = "http://api.openweathermap.org/data/2.5/weather?"
     city_name = "Nottingham"
 
-    complete_url = 
+    complete_url = ''
 
 #this is the main while loop which eveything else comes from. the program will stop when the user says bye
-user = 2 #user 2 is the user, and 1 is the bot
+ #user 2 is the user, and 1 is the bot
 BOT = 1
 USER = 2
 
@@ -290,24 +264,30 @@ print(welcome_message)
 
 query = ""
 done = False
+
+user = USER
 while(done == False):
     if(user == BOT):
-        intent = im.find_intent("hello!")
+        intent = im.find_intent(query)
         if intent == "greetings":
-            greetings_response(query)
+            print(greetings_response(query))
         elif intent == "medicine":
             medical_response(query)
         elif intent == "source":
             find_source(query)
         elif intent == "weather":
             weather_response(query)
+        elif intent == "music":
+            import music as m
+            m.play()
         elif intent == "exit":
             print("I hope that I was of good use! Bye! :)")
             done == True
+            exit()
         # respond(query)
         user = USER
     elif(user == USER):
-        query = input("What would you like to know?\n")
+        query = input()
         #determine intent
         user = BOT
     else:

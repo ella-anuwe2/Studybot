@@ -34,10 +34,10 @@ connection = sqlite3.connect('database.db')
 import warnings
 warnings.filterwarnings('ignore')
 
-from sklearn . model_selection import train_test_split
-from sklearn . feature_extraction . text import CountVectorizer
-from sklearn . feature_extraction . text import TfidfTransformer
-from sklearn . linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.linear_model import LogisticRegression
 
 import os
 
@@ -230,6 +230,7 @@ def most_similar(query):
     return similarities
 
 def get_summary(topic):
+    print(topic)
     result = wikipedia.search(topic)
     page = wikipedia.page(result[0])
     return page.summary
