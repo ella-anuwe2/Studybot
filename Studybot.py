@@ -192,6 +192,8 @@ def chop_response(topic):
     resp_list = list(filter(None, resp_list))
 
     for i in range(len(resp_list)):
+        banned_word = 
+        resp_list = [resp_list[i].replace(banned_word, '****') for word in resp_list[i] if word in banned_list] 
         print(resp_list[i])
         print()
         if i < len(resp_list)-1:
@@ -258,7 +260,7 @@ def weather_response(query):
 BOT = 1
 USER = 2
 
-
+from pygame import mixer
 
 query = input('hello, I am studybot. How can I help you?\n')
 done = False
@@ -276,9 +278,21 @@ while(done == False):
         elif intent == "weather":
             weather_response(query)
         elif intent == "music":
-            # import music as m
-            # m.play()
-            print('playing music...')
+            i = True
+            while i:
+                print('press p to pause and r to resume')
+                mixer.init()
+                mixer.music.load("song1.wav")
+                mixer.music.set_volume(0.5)
+                mixer.music.play()
+                ch = input()
+                if ch == 'p':
+                    mixer.music.pause()
+                    i = False
+                elif ch == 'r':
+                    mixer.music.play()
+                    i = False
+                print('playing music...')
         elif intent == "exit":
             print("I hope that I was of good use! Bye! :)")
             done == True

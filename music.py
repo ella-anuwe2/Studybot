@@ -11,4 +11,6 @@ while True:
     ch = input()
     if ch == 'p':
         mixer.music.pause()
-    print('hello')
+    elif ch == 'r':
+        mixer.music.play()
+    

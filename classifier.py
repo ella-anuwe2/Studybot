@@ -63,7 +63,7 @@ def extract_content(page_name):
             return wikipedia.page(r[0]).content
         except:
             print("error - none of the books on my shelf have any info on that!")
-
+            return "Sorry, the book on " + page_name + " is empty"
 wikipages = {
     'Lung cancer': extract_content('Lung cancer'),
     'Kidney disease': extract_content('Kidney disease'),
@@ -95,35 +95,40 @@ def process_documents():
     for page in lowered_doc:
         filtered_pages[page] = [word for word in lowered_doc[page] if word not in english_stopwords]
     # lemmentisation
-    from nltk.stem import WordNetLemmatizer
-    lemmentiser = WordNetLemmatizer()
+    # from nltk.stem import WordNetLemmatizer
+    # lemmentiser = WordNetLemmatizer()
 
-    postmap = {
-        'ADJ': 'j',
-        'ADV': 'r',
-        'NOUN': 'n',
-        'VERB': 'v',
-        'DET': 'j'
-    }
-    lemm_docs = {}
-    for book in filtered_pages:
-        tagged_q = nltk.pos_tag(filtered_pages, tagset='universal')
-        lemm_docs[book] = [lemmentiser.lemmatize(token[0]) for token in tagged_q]
+    # postmap = {
+    #     'ADJ': 'j',
+    #     'ADV': 'r',
+    #     'NOUN': 'n',
+    #     'VERB': 'v',
+    #     'DET': 'j'
+    # }
+    # lemm_docs = {}
+    # for book in filtered_pages:
+    #     tagged_q = nltk.pos_tag(filtered_pages, tagset='universal')
+    #     lemm_docs[book] = [lemmentiser.lemmatize(token[0]) for token in tagged_q]
         # for token in lemm_docs[book]:
         #     if token[1] == 'd':
 
+    sb_stemmer = SnowballStemmer('english')
+    stemmed_documents = {}
+    for book in filtered_pages:
+        stemmed_documents[book] = [sb_stemmer.stem(word) for word in filtered_pages[book]]
+
     global vocabulary
     vocabulary = []
-    for book in lemm_docs:
-        for stem in lemm_docs[book]:
+    for book in stemmed_documents:
+        for stem in stemmed_documents[book]:
             if stem not in vocabulary:
                 vocabulary.append(stem)
 
     global bow
     bow = {}
-    for book in lemm_docs:
+    for book in stemmed_documents:
         bow[book] = np.zeros(len(vocabulary))
-        for stem in lemm_docs[book]:
+        for stem in stemmed_documents[book]:
             index = vocabulary.index(stem)
             bow[book][index] += 1
         # print(f'{book} bag-of-word: {bow[book]}')
@@ -216,25 +221,26 @@ def processQuery(query):
                     if word not in english_stopwords]
 
     # lemmentisation
-    from nltk.stem import WordNetLemmatizer
-    lemmentiser = WordNetLemmatizer()
+    # from nltk.stem import WordNetLemmatizer
+    # lemmentiser = WordNetLemmatizer()
 
-    postmap = {
-        'ADJ': 'j',
-        'ADV': 'r',
-        'NOUN': 'n',
-        'VERB': 'v'
-    }
+    # postmap = {
+    #     'ADJ': 'j',
+    #     'ADV': 'r',
+    #     'NOUN': 'n',
+    #     'VERB': 'v'
+    # }
 
     
-    tagged_q = nltk.pos_tag(filtered_query, tagset='universal')
+    # tagged_q = nltk.pos_tag(filtered_query, tagset='universal')
 
 
-    lemm_q = [lemmentiser.lemmatize(tag[0]) for tag in tagged_q]
-    # stemmed_query = [sb_stemmer.stem(word) for word in lowered_tok_query]
+    # lemm_q = [lemmentiser.lemmatize(tag[0]) for tag in tagged_q]
+    sb_stemmer = SnowballStemmer('english')
+    stemmed_query = [sb_stemmer.stem(word) for word in lowered_tok_query]
     
     vector_query = np.zeros(len(vocabulary))
-    for stem in lemm_q:
+    for stem in stemmed_query:
         if stem in vocabulary:
             index = vocabulary.index(stem)
             vector_query[index] += 1
