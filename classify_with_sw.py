@@ -4,7 +4,6 @@ from urllib import request
 from urllib.request import FancyURLopener
 
 import nltk
-from nltk.corpus import stopwords
 from nltk import word_tokenize , sent_tokenize
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.util import ngrams , bigrams
@@ -21,7 +20,6 @@ from bs4 import SoupStrainer
 # nltk.download('universal_tagset')
 # nltk.download('wordnet')
 # nltk.download('averaged_perceptron_tagger')
-# nltk.download('stopwords')
 import scipy
 from scipy import spatial
 
@@ -62,7 +60,8 @@ def extract_content(page_name):
         try:
             return wikipedia.page(r[0]).content
         except:
-            print("error - none of the books on my shelf have any info on that!")
+           print("error - none of the books on my shelf have any info on that!") 
+        
 
 wikipages = {
     'Lung cancer': extract_content('Lung cancer'),
@@ -89,41 +88,43 @@ def process_documents():
     for page in tok_documents:
         lowered_doc[page] = [word.lower() for word in tok_documents[page]]
 
-    #removing stopwords
-    filtered_pages = {}
-    english_stopwords = stopwords.words('english')
-    for page in lowered_doc:
-        filtered_pages[page] = [word for word in lowered_doc[page] if word not in english_stopwords]
-    # lemmentisation
-    from nltk.stem import WordNetLemmatizer
-    lemmentiser = WordNetLemmatizer()
 
-    postmap = {
-        'ADJ': 'j',
-        'ADV': 'r',
-        'NOUN': 'n',
-        'VERB': 'v',
-        'DET': 'j'
-    }
-    lemm_docs = {}
-    for book in filtered_pages:
-        tagged_q = nltk.pos_tag(filtered_pages, tagset='universal')
-        lemm_docs[book] = [lemmentiser.lemmatize(token[0]) for token in tagged_q]
-        # for token in lemm_docs[book]:
-        #     if token[1] == 'd':
+    #lemmentisation
+    
+    # from nltk.stem import WordNetLemmatizer
+    # lemmentiser = WordNetLemmatizer()
 
+    # postmap = {
+    #     'ADJ': 'j',
+    #     'ADV': 'r',
+    #     'NOUN': 'n',
+    #     'VERB': 'v'
+    # }
+    # lemm_docs = {}
+    # for book in lowered_doc:
+    #     tagged_q = nltk.pos_tag(lowered_doc, tagset='universal')
+        
+    #     # lemm_docs[book] = [lemmentiser.lemmatize(token[0], pos=postmap[token[1]]) for token in tagged_q]
+    #     lemm_docs[book] = [lemmentiser.lemmatize(token[0]) for token in tagged_q]
+        
+    sb_stemmer = SnowballStemmer('english')
+    stemmed_documents = {}
+    for book in lowered_doc:
+        stemmed_documents[book] = [sb_stemmer.stem(word) for word in lowered_doc[book]]
+
+        
     global vocabulary
     vocabulary = []
-    for book in lemm_docs:
-        for stem in lemm_docs[book]:
+    for book in stemmed_documents:
+        for stem in stemmed_documents[book]:
             if stem not in vocabulary:
                 vocabulary.append(stem)
 
     global bow
     bow = {}
-    for book in lemm_docs:
+    for book in stemmed_documents:
         bow[book] = np.zeros(len(vocabulary))
-        for stem in lemm_docs[book]:
+        for stem in stemmed_documents[book]:
             index = vocabulary.index(stem)
             bow[book][index] += 1
         # print(f'{book} bag-of-word: {bow[book]}')
@@ -210,31 +211,30 @@ def processQuery(query):
     # Lower casing
     lowered_tok_query = [word.lower() for word in tok_query]
 
-    # Remove stopwords and lower casing
-    english_stopwords = stopwords.words('english')
-    filtered_query = [word for word in lowered_tok_query
-                    if word not in english_stopwords]
+    sb_stemmer = SnowballStemmer('english')
+    stemmed_query = [sb_stemmer.stem(word) for word in lowered_tok_query]
 
     # lemmentisation
-    from nltk.stem import WordNetLemmatizer
-    lemmentiser = WordNetLemmatizer()
+    # from nltk.stem import WordNetLemmatizer
+    # lemmentiser = WordNetLemmatizer()
 
-    postmap = {
-        'ADJ': 'j',
-        'ADV': 'r',
-        'NOUN': 'n',
-        'VERB': 'v'
-    }
+    # postmap = {
+    #     'ADJ': 'j',
+    #     'ADV': 'r',
+    #     'NOUN': 'n',
+    #     'VERB': 'v',
+    #     'DET': 'j'
+    # }
 
     
-    tagged_q = nltk.pos_tag(filtered_query, tagset='universal')
+    # tagged_q = nltk.pos_tag(lowered_tok_query, tagset='universal')
 
+  
+    # # lemm_q = [lemmentiser.lemmatize(tag[0], pos=postmap[tag[1]]) for tag in tagged_q]
+    # lemm_q = [lemmentiser.lemmatize(tag[0]) for tag in tagged_q]
 
-    lemm_q = [lemmentiser.lemmatize(tag[0]) for tag in tagged_q]
-    # stemmed_query = [sb_stemmer.stem(word) for word in lowered_tok_query]
-    
     vector_query = np.zeros(len(vocabulary))
-    for stem in lemm_q:
+    for stem in stemmed_query:
         if stem in vocabulary:
             index = vocabulary.index(stem)
             vector_query[index] += 1

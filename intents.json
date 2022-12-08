@@ -1,9 +1,5 @@
 {"intents": [{"tag": "greetings", 
-            "patterns": ["hi", "hey", "hi!", "wagwarn", "hello", "bonjour", "chao", "whats up"]
-            },
-        
-            {"tag": "medicine", 
-            "patterns": ["lungs", "heart", "bones", "health", "body", "skeletal"]
+            "patterns": ["hi", "hey", "hi!", "wagwarn", "hello", "bonjour", "chao", "whats up", "my name is Gregg", "My name is Ella", "my name is Max", "I am James", "I am Bob", "James is my name"]
             },
 
             {"tag": "source", 
@@ -15,12 +11,32 @@
             },
 
             {"tag": "exit", 
-            "patterns": ["bye", "goodbye", "i'm done now", "bye now!", "i have to go", "cheerio", "au revoir", "bye-bye", "so long"]
+            "patterns": ["bye", "goodbye", "done now", "bye now!", "i have to go", "cheerio", "au revoir", "bye-bye", "so long", "farewell"]
             },
 
             {"tag": "music", 
-            "patterns": ["play some music", "do you have a playlist?", "could you play some music", "i would like some music", "i like lofi"]
-            }
+            "patterns": ["play some music", "do you have a playlist?", "could you play some music", "i would like some music", "i like lofi", "music", "play music"]
+            },
+
+            {"tag": "medicine", 
+            "patterns": ["i would like to know about lung cancer",
+             "tell me about heart disease", "tell me about kidney disease", 
+             "tell me about lung cancer?", "how do you treat cancer patients", "how do you treat kidney disease",
+             "what causes kidney stones?", "what causes gastric issues", "what causes heart burn",
+             "how long does a broken femur take to heal", "what is the effect of breaking a bone in adolescence",
+             "what is the most common illness in adults", "how to treat depression", "how to treat anxiety",
+             "how to treat an eating disorder", "what is the most common health disorder", "what causes kidney stones", 
+             "what causes liver disease", "foods that are good for the liver", "what causes stomach cancer", "what causes ulcers",
+              "how many bones are in the body", "bones", "how many body parts are there in the body", "what medicine is good for infections"]
+            },
+            {"tag": "yes", 
+            "patterns": ["yes", "y", "yeah", "alright", "absolutely", "sure", "certainly", "yep", "okay", "ok",
+            "yah", "yup"]
+            },
+
+            {"tag": "no", 
+            "patterns": ["no", "not at all", "no indeed", "never", "not really", "n", "absolutely not", "no way", "nope"]
+}
             
             ]
 }

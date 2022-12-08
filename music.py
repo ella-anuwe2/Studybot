@@ -1,14 +1,14 @@
-from playsound import playsound
-import glob
-import multiprocessing
+from pygame import mixer
 
-p = multiprocessing.Process(target=playsound, args=("song1.wav",))
-def create_playlist(path):
-    for song in glob.glob(path):
-        print('playing...'+ song)
-        playsound(song)
+mixer.init()
+mixer.music.load("song1.wav")
+mixer.music.set_volume(0.5)
+mixer.music.play()
 
-def play():
-    create_playlist('*.wav')
+while True:
+    print('press p to pause and r to resume')
 
-play()
+    ch = input()
+    if ch == 'p':
+        mixer.music.pause()
+    print('hello')
