@@ -36,6 +36,7 @@ import classifier
 warnings.filterwarnings('ignore')
 
 import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
 import intent_matcher as im
 
@@ -70,56 +71,13 @@ def find_keywords(query):
 
     tagged_query = nltk.pos_tag(tokens_wo_sw, tagset='universal')
 
+
     keywords = ""
     for token in tagged_query:
          if token[1] == "NOUN" or token[1] == "VERB":
             keywords += token[0] + " "
     return keywords
 
-def process_text(query):
-    #tokenization
-    tokenized_query = word_tokenize(query)
-
-    #removing stop words
-    #maybe make quotes a search prompt
-    tokens_wo_sw= [word.lower() for word in tokenized_query if not word in stopwords.words()]
-    filtered_query = ("").join(tokens_wo_sw)
-
-
-    #stemming
-    #can change type of stemmer if this isnt working
-    # q_stemmer = PorterStemmer()
-    sb_stemmer = SnowballStemmer('english')
-    stemmed_q = []
-    for token in tokens_wo_sw:
-        stemmed_q.append(sb_stemmer.stem(token))
-    
-    #stemmed and tagged query
-    tagged_query_stem = nltk.pos_tag(stemmed_q, tagset='universal')
-    # tagged_query_lem = nltk.pos_tag(lemm_q, tagset='universal')
-    
-    postmap = {
-    'ADJ': 'j',
-    'ADV': 'r',
-    'NOUN': 'n',
-    'VERB': 'v'
-    }
-    
-    #lemmentised and tagged query
-    lemm_q = []
-    lemmentiser = WordNetLemmatizer()
-    tagged_query = nltk.pos_tag(lemm_q, tagset='universal')
-    for token in tagged_query: 
-        word = token[0]
-        tag = token[1]
-        if tag in postmap.keys():
-            lemm_q.append(lemmentiser.lemmatize(word, postmap[tag]))
-        else:
-            lemm_q.append(lemmentiser.lemmatize(word))
-
-    return lemm_q
-    # #only return false if no similar paper is found
-    # return falleback_response(query)
 
 def add_to_dataset(keywords):
     content = classifier.extract_content(keywords)
@@ -146,8 +104,7 @@ def fallback_response(query):
         print(response)
         add_to_dataset(find_keywords(query)) ##returns string of information about the topic and adds page to database
         chop_response(find_keywords(query)) ##takes in entire string
-        print("This is the best information that I could find from my research")
-        print("I hope that this was helpful!")
+        print("I hope that you found my research helpful!")
         response = ""
     else:
         print(response)
@@ -174,13 +131,16 @@ def medical_response(query):
     sorted(similarity_list, reverse=True)
 
     resp = False
+    i = 0
+    
     for response in range(len(answer_list)):
-        ans = input("Are you asking about "+ answer_list[response] + "? (y/n)\n")
-        if im.find_intent(ans) == "yes": #if they say yes
-            # print(answer_list[response])
-            chop_response(answer_list[response])
-            resp = True #has responded, and therefore we do not need a fallback response after exiting the loop
-            return
+        if response < 1:
+            ans = input("Are you asking about "+ answer_list[response] + "? (y/n)\n")
+            if im.find_intent(ans) == "yes": #if they say yes
+                # print(answer_list[response])
+                chop_response(answer_list[response])
+                resp = True #has responded, and therefore we do not need a fallback response after exiting the loop
+                return
             
     if(resp == False):
         print(fallback_response(query))
@@ -192,8 +152,8 @@ def chop_response(topic):
     resp_list = list(filter(None, resp_list))
 
     for i in range(len(resp_list)):
-        banned_word = 
-        resp_list = [resp_list[i].replace(banned_word, '****') for word in resp_list[i] if word in banned_list] 
+        # banned_word = 
+        # resp_list = [resp_list[i].replace(banned_word, '****') for word in resp_list[i] if word in banned_list] 
         print(resp_list[i])
         print()
         if i < len(resp_list)-1:
@@ -262,10 +222,13 @@ USER = 2
 
 from pygame import mixer
 
-query = input('hello, I am studybot. How can I help you?\n')
+query = input('Hello, I am studybot. How can I help you?\n')
 done = False
 
 user = BOT
+mixer.init()
+mixer.music.load("song1.wav")
+mixer.music.set_volume(0.5)
 while(done == False):
     if(user == BOT):
         intent = im.find_intent(query)
@@ -281,9 +244,6 @@ while(done == False):
             i = True
             while i:
                 print('press p to pause and r to resume')
-                mixer.init()
-                mixer.music.load("song1.wav")
-                mixer.music.set_volume(0.5)
                 mixer.music.play()
                 ch = input()
                 if ch == 'p':

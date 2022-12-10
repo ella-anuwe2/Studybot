@@ -14,10 +14,6 @@ from nltk import SnowballStemmer
 from nltk.stem.porter import PorterStemmer
 from nltk.stem.wordnet import WordNetLemmatizer
 
-import bs4 as bs
-from bs4 import BeautifulSoup as bsoup
-from bs4 import SoupStrainer
-
 # nltk.download('universal_tagset')
 # nltk.download('wordnet')
 # nltk.download('averaged_perceptron_tagger')
@@ -57,13 +53,14 @@ bow = {}
 import numpy as np
 
 def extract_content(page_name):
-    r = wikipedia.search(page_name)
-    if len(r) > 0:
+    r = wikipedia.search(page_name + " medical")
+    if r[0] != None:
         try:
             return wikipedia.page(r[0]).content
         except:
-            print("error - none of the books on my shelf have any info on that!")
             return "Sorry, the book on " + page_name + " is empty"
+    else:
+        return "Sorry, the book on " + page_name + " is empty"
 wikipages = {
     'Lung cancer': extract_content('Lung cancer'),
     'Kidney disease': extract_content('Kidney disease'),
@@ -231,7 +228,6 @@ def processQuery(query):
     #     'VERB': 'v'
     # }
 
-    
     # tagged_q = nltk.pos_tag(filtered_query, tagset='universal')
 
 
@@ -262,9 +258,8 @@ def most_similar(query):
     return similarities
 
 def get_summary(topic):
-    # print(topic)
     result = wikipedia.search(topic)
-    page = wikipedia.page(result[0])
+    page = wikipedia.page(result[0], auto_suggest=False)
     return page.summary
 
 calculate()
