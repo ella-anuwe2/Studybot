@@ -14,10 +14,6 @@ from nltk import SnowballStemmer
 from nltk.stem.porter import PorterStemmer
 from nltk.stem.wordnet import WordNetLemmatizer
 
-import bs4 as bs
-from bs4 import BeautifulSoup as bsoup
-from bs4 import SoupStrainer
-
 # nltk.download('universal_tagset')
 # nltk.download('wordnet')
 # nltk.download('averaged_perceptron_tagger')
@@ -42,14 +38,6 @@ import intent_matcher as im
 
 import python_weather
 
-# keepwords = ["how", "what", "when", "where", "why"]
-# new_words = list(filter(lambda w: w in keepwords, stopwords))
-
-
-#to do list:
-# - pre-process text
-# - cosine simimarity to find 
-# - 
 def generateText(query):
     return -1
 
@@ -145,15 +133,17 @@ def medical_response(query):
     if(resp == False):
         print(fallback_response(query))
 
+#breaking response down into smaller parts
 def chop_response(topic):
     st = classifier.get_summary(topic)
     resp_list = st.split("\n")
 
     resp_list = list(filter(None, resp_list))
-
+    global OFFENSIVE_WORDS
+        
     for i in range(len(resp_list)):
-        # banned_word = 
-        # resp_list = [resp_list[i].replace(banned_word, '****') for word in resp_list[i] if word in banned_list] 
+        for word in OFFENSIVE_WORDS:
+            resp_list[i] = resp_list[i].replace(word, "****")
         print(resp_list[i])
         print()
         if i < len(resp_list)-1:
@@ -161,6 +151,7 @@ def chop_response(topic):
             if im.find_intent(inp) == "no":
                 return
 
+username = 'friend'
 
 def find_name(query):
     tokenized_query = word_tokenize(query)
@@ -168,6 +159,7 @@ def find_name(query):
     clean_tokens = [token.capitalize() for token in tokenized_query if token not in string.punctuation]
     
     pos = nltk.pos_tag(clean_tokens)
+
     chunks = nltk.ne_chunk(pos)
 
     person = []
@@ -175,19 +167,21 @@ def find_name(query):
         if subtree.label() == "PERSON":
             for leaf in subtree.leaves():
                 person.append(leaf[0])
-    
-    
-    
-    username = "".join(person)
-    if len(username) == 0:
-        return 'friend'
-    else:
-        return username
+    global username
+
+    name = "".join(person)
+    if not (username == 'friend'):
+        username = name
+
+    return username
 
 def find_source(query):
     inp = input("Are you asking for a source or are you asking a medical question?\nPress s for source and m for medical information")
     if inp.lower() == 's':
-        print('finding source...')
+        print('Looking through my library...')
+        sources = classifier.find_sources(find_keywords(query))
+        for i in range(len(sources)):
+            print(sources[i])
     else:
         medical_response(query)
 
@@ -208,21 +202,28 @@ def greetings_response(query):
     gr_index +=1
     return response
 
-
-def weather_response(query):
-    base_url = "http://api.openweathermap.org/data/2.5/weather?"
-    city_name = "Nottingham"
-    print("It is currently sunny...")
-    complete_url = ''
+OFFENSIVE_WORDS = ["beans", "idiot", "dumb", "moron", "cancer"]
+def filter_message(query):
+    query = query.lower()
+    words = OFFENSIVE_WORDS[1:]
+    for word in words:
+        if word in query:
+            return False
+    return True
 
 #this is the main while loop which eveything else comes from. the program will stop when the user says bye
- #user 2 is the user, and 1 is the bot
+#user 2 is the user, and 1 is the bot
 BOT = 1
 USER = 2
 
 from pygame import mixer
-
-query = input('Hello, I am studybot. How can I help you?\n')
+c = True
+while(c):
+    query = input('Hello, I am studybot. How can I help you?\n')
+    if filter_message(query) == False:
+        print("Sorry, but that was inappropriate.")
+    else:
+        c = False
 done = False
 
 user = BOT
@@ -238,8 +239,6 @@ while(done == False):
             medical_response(query)
         elif intent == "source":
             find_source(query)
-        elif intent == "weather":
-            weather_response(query)
         elif intent == "music":
             i = True
             while i:
@@ -258,9 +257,17 @@ while(done == False):
             done == True
             exit()
         # respond(query)
+        else:
+            print("I dont really know what that means, sorry.")
         user = USER
     elif(user == USER):
-        query = input("What else would you like to ask?\n")
+        c = True
+        while(c):
+            query = input("What else would you like to ask?\n")
+            if filter_message(query) == False:
+                print("Sorry, but that was inappropriate.")
+            else:
+                c = False
         user = BOT
     else:
         print('Whoops! I think I am broken :(')

@@ -3,11 +3,8 @@
             },
 
             {"tag": "source", 
-            "patterns": ["could your find me a source for health", "could you find me a source for that please", "i need a source for this topic", "please find me a articles on medical care", "send me links on medical care", "i need some sources "]
-            },
-
-            {"tag": "weather", 
-            "patterns": ["hi! what is the weather like today?", "What is the weather like today", "great weather we're having today", "will it rain?", "do i need to weat a jacket?", "will i need an umbrella?", "it is really wet outside", "it is terrible outside", "the weather outside is terrible"]
+            "patterns": ["could your find me a source for health", "could you find me a source for that please", "i need a source for this topic", "please find me a articles on medical care", "send me links on medical care", "i need some sources",
+          "find some articles on this", "i need some journals on this", "do you have an article on this?"]
             },
 
             {"tag": "exit", 

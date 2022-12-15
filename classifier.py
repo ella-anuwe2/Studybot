@@ -91,23 +91,7 @@ def process_documents():
     english_stopwords = stopwords.words('english')
     for page in lowered_doc:
         filtered_pages[page] = [word for word in lowered_doc[page] if word not in english_stopwords]
-    # lemmentisation
-    # from nltk.stem import WordNetLemmatizer
-    # lemmentiser = WordNetLemmatizer()
 
-    # postmap = {
-    #     'ADJ': 'j',
-    #     'ADV': 'r',
-    #     'NOUN': 'n',
-    #     'VERB': 'v',
-    #     'DET': 'j'
-    # }
-    # lemm_docs = {}
-    # for book in filtered_pages:
-    #     tagged_q = nltk.pos_tag(filtered_pages, tagset='universal')
-    #     lemm_docs[book] = [lemmentiser.lemmatize(token[0]) for token in tagged_q]
-        # for token in lemm_docs[book]:
-        #     if token[1] == 'd':
 
     sb_stemmer = SnowballStemmer('english')
     stemmed_documents = {}
@@ -262,4 +246,19 @@ def get_summary(topic):
     page = wikipedia.page(result[0], auto_suggest=False)
     return page.summary
 
+def find_sources(keywords):
+    result = wikipedia.search(keywords)
+    page = wikipedia.page(result[0], auto_suggest=False)
+    try:
+        return page.links[0:5]
+    except:
+        try:
+            print("I dont seem to have a lot of books on that, but here's what I have...")
+            return page.links[0:3]
+        except:
+            try:
+                print("I dont seem to have a lot of books on that, but here's what I have...")
+                return page.links[0]
+            except:
+                print("Wow. I have tonnes of books but none on this topic. Sorry.")
 calculate()
