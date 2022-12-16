@@ -36,10 +36,6 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
 import intent_matcher as im
 
-import python_weather
-
-def generateText(query):
-    return -1
 
 def find_topic(subject):
     path = 'Datasets\\topic_list\\' + subject
@@ -170,8 +166,8 @@ def find_name(query):
     global username
 
     name = "".join(person)
-    if not (username == 'friend'):
-        username = name
+    
+    username = name
 
     return username
 
@@ -190,7 +186,7 @@ def greetings_response(query):
     username = find_name(query)
     greetings = {
         1: "Hi " + username +  "! I hope you are doing well!",
-        2: "Hello " + username +  ". I am studybot ",#
+        2: "Hello " + username +  ". I am studybot ",
         3: "Beep bop. Hello " + username + ". I am Studybot and I am ready to help", 
         4: "Hello " + username + ". Let me help you with my research!"
     }
@@ -205,7 +201,8 @@ def greetings_response(query):
 OFFENSIVE_WORDS = ["beans", "idiot", "dumb", "moron", "cancer"]
 def filter_message(query):
     query = query.lower()
-    words = OFFENSIVE_WORDS[1:]
+    words = OFFENSIVE_WORDS[1:] 
+    #words = OFFENSIVE_WORDS[1:] (for testing if 'beans' can be censored)
     for word in words:
         if word in query:
             return False

@@ -24,7 +24,8 @@
              "what is the most common illness in adults", "how to treat depression", "how to treat anxiety",
              "how to treat an eating disorder", "what is the most common health disorder", "what causes kidney stones", 
              "what causes liver disease", "foods that are good for the liver", "what causes stomach cancer", "what causes ulcers",
-              "how many bones are in the body", "bones", "how many body parts are there in the body", "what medicine is good for infections"]
+              "how many bones are in the body", "bones", "how many body parts are there in the body", "what medicine is good for infections",
+            "i have a headache", "i have a cold", "how can i treat a cold"]
             },
             {"tag": "yes", 
             "patterns": ["yes", "y", "yeah", "alright", "absolutely", "sure", "certainly", "yep", "okay", "ok",
