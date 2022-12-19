@@ -14,10 +14,10 @@ from nltk import SnowballStemmer
 from nltk.stem.porter import PorterStemmer
 from nltk.stem.wordnet import WordNetLemmatizer
 
-# nltk.download('universal_tagset')
-# nltk.download('wordnet')
-# nltk.download('averaged_perceptron_tagger')
-# nltk.download('stopwords')
+nltk.download('universal_tagset')
+nltk.download('wordnet')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('stopwords')
 import scipy
 from scipy import spatial
 
@@ -35,7 +35,6 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
 import intent_matcher as im
-
 
 def find_topic(subject):
     path = 'Datasets\\topic_list\\' + subject
@@ -118,8 +117,8 @@ def medical_response(query):
     i = 0
     
     for response in range(len(answer_list)):
-        if response < 1:
-            ans = input("Are you asking about "+ answer_list[response] + "? (y/n)\n")
+        if response < 2:
+            ans = input("Are you asking about "+ answer_list[response] + "?\n")
             if im.find_intent(ans) == "yes": #if they say yes
                 # print(answer_list[response])
                 chop_response(answer_list[response])
@@ -166,16 +165,20 @@ def find_name(query):
     global username
 
     name = "".join(person)
-    
-    username = name
+    if len(name) == 0:
+        return username
+    else:
+        username = name
+        return name
 
-    return username
 
 def find_source(query):
-    inp = input("Are you asking for a source or are you asking a medical question?\nPress s for source and m for medical information")
+    inp = input("Are you asking for a source or are you asking a medical question?\nPress s for source and m for medical information\n")
     if inp.lower() == 's':
         print('Looking through my library...')
         sources = classifier.find_sources(find_keywords(query))
+        if sources is None:
+            return
         for i in range(len(sources)):
             print(sources[i])
     else:
@@ -198,11 +201,11 @@ def greetings_response(query):
     gr_index +=1
     return response
 
-OFFENSIVE_WORDS = ["beans", "idiot", "dumb", "moron", "cancer"]
+OFFENSIVE_WORDS = ["beans", "idiot", "dumb", "moron", "stupid"]
 def filter_message(query):
     query = query.lower()
-    words = OFFENSIVE_WORDS[1:] 
-    #words = OFFENSIVE_WORDS[1:] (for testing if 'beans' can be censored)
+    words = OFFENSIVE_WORDS 
+    # words = OFFENSIVE_WORDS[1:] #(for testing if 'beans' can be censored)
     for word in words:
         if word in query:
             return False
@@ -239,7 +242,7 @@ while(done == False):
         elif intent == "music":
             i = True
             while i:
-                print('press p to pause and r to resume')
+                print('press p to pause and r to resume\n')
                 mixer.music.play()
                 ch = input()
                 if ch == 'p':
@@ -252,7 +255,7 @@ while(done == False):
         elif intent == "exit":
             print("I hope that I was of good use! Bye! :)")
             done == True
-            exit()
+            exit() 
         # respond(query)
         else:
             print("I dont really know what that means, sorry.")

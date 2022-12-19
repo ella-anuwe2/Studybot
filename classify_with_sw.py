@@ -17,9 +17,9 @@ import bs4 as bs
 from bs4 import BeautifulSoup as bsoup
 from bs4 import SoupStrainer
 
-# nltk.download('universal_tagset')
-# nltk.download('wordnet')
-# nltk.download('averaged_perceptron_tagger')
+nltk.download('universal_tagset')
+nltk.download('wordnet')
+nltk.download('averaged_perceptron_tagger')
 import scipy
 from scipy import spatial
 
@@ -41,16 +41,6 @@ import os
 
 import wikipedia
 
-# result = wikipedia.search("Lung cancer")
-# page = wikipedia.page(result[0])
-# title = page.title
-# categories = page.categories
-# # print("categories: "+ categories)
-# content = page.content
-# # print("content: " + content)
-# links = page.links
-# refereces = page.references
-# summary = page.summary
 bow = {}
 import numpy as np
 
@@ -87,8 +77,6 @@ def process_documents():
     lowered_doc = {}
     for page in tok_documents:
         lowered_doc[page] = [word.lower() for word in tok_documents[page]]
-
-
     #lemmentisation
     
     # from nltk.stem import WordNetLemmatizer

@@ -1,4 +1,0 @@
-{ "intents":[{"tag": "rude", 
-            "patterns": ["shut up", "fuck", "shit", "cunt", "fuck you", "stupid", "idiot", "retard", "retarded"]
-            }]
- }

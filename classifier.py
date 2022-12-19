@@ -14,10 +14,10 @@ from nltk import SnowballStemmer
 from nltk.stem.porter import PorterStemmer
 from nltk.stem.wordnet import WordNetLemmatizer
 
-# nltk.download('universal_tagset')
-# nltk.download('wordnet')
-# nltk.download('averaged_perceptron_tagger')
-# nltk.download('stopwords')
+nltk.download('universal_tagset')
+nltk.download('wordnet')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('stopwords')
 import scipy
 from scipy import spatial
 
@@ -39,16 +39,6 @@ import os
 
 import wikipedia
 
-# result = wikipedia.search("Lung cancer")
-# page = wikipedia.page(result[0])
-# title = page.title
-# categories = page.categories
-# # print("categories: "+ categories)
-# content = page.content
-# # print("content: " + content)
-# links = page.links
-# refereces = page.references
-# summary = page.summary
 bow = {}
 import numpy as np
 
@@ -121,9 +111,6 @@ def calc_matrix():
 
     from scipy import sparse
     from sys import getsizeof
-    sparse_matrix = sparse.csr_matrix(matrix)
-    # print(f"Size of array: {getsizeof(matrix)} B")
-    # print(f"Size of sparse matrix: {getsizeof(sparse_matrix)} B")
 
     np.save('./td_matrix.npy', matrix)  #saving matrix using pickle
 
@@ -201,21 +188,6 @@ def processQuery(query):
     filtered_query = [word for word in lowered_tok_query
                     if word not in english_stopwords]
 
-    # lemmentisation
-    # from nltk.stem import WordNetLemmatizer
-    # lemmentiser = WordNetLemmatizer()
-
-    # postmap = {
-    #     'ADJ': 'j',
-    #     'ADV': 'r',
-    #     'NOUN': 'n',
-    #     'VERB': 'v'
-    # }
-
-    # tagged_q = nltk.pos_tag(filtered_query, tagset='universal')
-
-
-    # lemm_q = [lemmentiser.lemmatize(tag[0]) for tag in tagged_q]
     sb_stemmer = SnowballStemmer('english')
     stemmed_query = [sb_stemmer.stem(word) for word in lowered_tok_query]
     
@@ -224,12 +196,11 @@ def processQuery(query):
         if stem in vocabulary:
             index = vocabulary.index(stem)
             vector_query[index] += 1
-    # print(f"Query bag-of-word:\n{vector_query}")
-    # print(sparse.csr_matrix(vector_query))
     global logfreq_vector_query
     logfreq_vector_query = logfreq_weighting(vector_query)
-    # print(f"Query bag-of-word (logfreq weighted):\n{logfreq_vector_query}")
-    # print(sparse.csr_matrix(logfreq_vector_query))
+    from scipy import sparse
+    from sys import getsizeof
+
 
 def most_similar(query):
     processQuery(query=query)
@@ -246,19 +217,27 @@ def get_summary(topic):
     page = wikipedia.page(result[0], auto_suggest=False)
     return page.summary
 
+import wikipedia
 def find_sources(keywords):
-    result = wikipedia.search(keywords)
-    page = wikipedia.page(result[0], auto_suggest=False)
+   
     try:
-        return page.links[0:5]
+        result = wikipedia.search(keywords)
+        page = wikipedia.page(result[0], auto_suggest=False)
+    except wikipedia.DisambiguationError as e:
+        # Print a message to the user asking for more specific keywords
+        print("I've searched far and wide, but there are no books in my library on that")
+        return
+
+    try:
+        return page.references[0:5]
     except:
         try:
             print("I dont seem to have a lot of books on that, but here's what I have...")
-            return page.links[0:3]
+            return page.references[0:3]
         except:
             try:
                 print("I dont seem to have a lot of books on that, but here's what I have...")
-                return page.links[0]
+                return page.references[0]
             except:
                 print("Wow. I have tonnes of books but none on this topic. Sorry.")
 calculate()

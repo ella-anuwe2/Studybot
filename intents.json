@@ -12,7 +12,7 @@
             },
 
             {"tag": "music", 
-            "patterns": ["play some music", "do you have a playlist?", "could you play some music", "i would like some music", "i like lofi", "music", "play music"]
+            "patterns": ["play some music", "play some music", "play music", "i like music", "music"]
             },
 
             {"tag": "medicine", 
